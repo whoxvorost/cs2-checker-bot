@@ -3,3 +3,4 @@ steam_cache.json
 __pycache__/
 *.pyc
 .venv/
+users.json
