@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 from dotenv import load_dotenv
 import os
 import re
@@ -14,13 +15,16 @@ from telegram.ext import (
 )
 
 
-load_dotenv()
+BASE_DIR = Path(__file__).resolve().parent
+
+dotenv_path = BASE_DIR / ".env"
+load_dotenv(dotenv_path=dotenv_path)
 
 TOKEN = os.getenv("TELEGRAM_TOKEN")
 STEAM_API_KEY = os.getenv("STEAM_API_KEY")
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-CACHE_FILE = os.path.join(BASE_DIR, "steam_cache.json")
+CACHE_FILE = BASE_DIR / "steam_cache.json"
+
 
 
 # =========================
@@ -106,13 +110,21 @@ def extract_steamid(text: str):
 def build_card(steamid: str):
     steam_url = f"https://steamcommunity.com/profiles/{steamid}"
     csstats_url = f"https://csstats.gg/player/{steamid}"
+    skinflow_url = f"https://skinflow.gg/cs2-tracker/{steamid}"
+    csrep_url = f"https://csrep.gg/player/{steamid}"
     faceitfinder_url = f"https://faceitfinder.com/profile/{steamid}"
 
     return (
         "🎮 ── Player's Info ──\n\n"
+
         f"🔗 Steam:\n{steam_url}\n\n"
-        f"🧮 CSStats:\n{csstats_url}\n\n"
+
+        f"🧮 CSStats:\n{csstats_url}\n"
+        f"💠 SkinFlow:\n{skinflow_url}\n"
+        f"📈 CSRep:\n{csrep_url}\n\n"
+
         f"🔥 Faceit Finder:\n{faceitfinder_url}\n\n"
+
         "──────────────────\n"
         "💎 CS2 Bot by xvorost"
     )
