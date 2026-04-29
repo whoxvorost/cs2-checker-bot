@@ -1,10 +1,10 @@
 import json
-from pathlib import Path
-from dotenv import load_dotenv
 import os
 import re
-import requests
+from pathlib import Path
 
+import requests
+from dotenv import load_dotenv
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import (
     ApplicationBuilder,
@@ -21,8 +21,7 @@ from telegram.ext import (
 
 BASE_DIR = Path(__file__).resolve().parent
 
-dotenv_path = BASE_DIR / ".env"
-load_dotenv(dotenv_path=dotenv_path)
+load_dotenv(BASE_DIR / ".env")
 
 TOKEN = os.getenv("TELEGRAM_TOKEN")
 STEAM_API_KEY = os.getenv("STEAM_API_KEY")
@@ -32,48 +31,36 @@ USERS_FILE = BASE_DIR / "users.json"
 
 
 # =========================
-# КЕШ STEAM
+# JSON HELPERS
 # =========================
 
-def load_cache():
-    if os.path.exists(CACHE_FILE):
-        with open(CACHE_FILE, "r", encoding="utf-8") as file:
+
+def load_json(file_path, default):
+    if os.path.exists(file_path):
+        with open(file_path, "r", encoding="utf-8") as file:
             return json.load(file)
-
-    return {}
-
-
-def save_cache(cache):
-    with open(CACHE_FILE, "w", encoding="utf-8") as file:
-        json.dump(cache, file, indent=4)
+    return default
 
 
-steam_cache = load_cache()
+def save_json(file_path, data):
+    with open(file_path, "w", encoding="utf-8") as file:
+        json.dump(data, file, indent=4)
+
+
+steam_cache = load_json(CACHE_FILE, {})
 
 
 # =========================
 # USERS
 # =========================
 
-def load_users():
-    if os.path.exists(USERS_FILE):
-        with open(USERS_FILE, "r", encoding="utf-8") as file:
-            return json.load(file)
-
-    return []
-
-
-def save_users(users):
-    with open(USERS_FILE, "w", encoding="utf-8") as file:
-        json.dump(users, file, indent=4)
-
 
 def register_user(user_id: int):
-    users = load_users()
+    users = load_json(USERS_FILE, [])
 
     if user_id not in users:
         users.append(user_id)
-        save_users(users)
+        save_json(USERS_FILE, users)
 
     return len(users)
 
@@ -82,11 +69,8 @@ def register_user(user_id: int):
 # STEAM
 # =========================
 
-def resolve_vanity(vanity: str):
-    """
-    Переробляє Steam vanity nickname у SteamID64.
-    """
 
+def resolve_vanity(vanity: str):
     if vanity in steam_cache:
         return steam_cache[vanity]
 
@@ -105,7 +89,7 @@ def resolve_vanity(vanity: str):
             steamid = data["response"]["steamid"]
 
             steam_cache[vanity] = steamid
-            save_cache(steam_cache)
+            save_json(CACHE_FILE, steam_cache)
 
             return steamid
 
@@ -116,13 +100,6 @@ def resolve_vanity(vanity: str):
 
 
 def extract_steamid(text: str):
-    """
-    Дістає SteamID64 з:
-    - SteamID64
-    - steamcommunity.com/profiles/...
-    - steamcommunity.com/id/...
-    """
-
     steamid_match = re.search(r"(7656119\d{10})", text)
 
     if steamid_match:
@@ -141,6 +118,7 @@ def extract_steamid(text: str):
 # КАРТОЧКА
 # =========================
 
+
 def build_card(steamid: str):
     steam_url = f"https://steamcommunity.com/profiles/{steamid}"
     csstats_url = f"https://csstats.gg/player/{steamid}"
@@ -150,15 +128,11 @@ def build_card(steamid: str):
 
     return (
         "🎮 ── Player's Info ──\n\n"
-
         f"🔗 Steam:\n{steam_url}\n\n"
-
         f"🧮 CSStats:\n{csstats_url}\n"
         f"💠 SkinFlow:\n{skinflow_url}\n"
         f"📈 CSRep:\n{csrep_url}\n\n"
-
         f"🔥 Faceit Finder:\n{faceitfinder_url}\n\n"
-
         "──────────────────\n"
         "💎 CS2 Bot by xvorost"
     )
@@ -167,6 +141,7 @@ def build_card(steamid: str):
 # =========================
 # TELEGRAM BOT
 # =========================
+
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
@@ -184,11 +159,9 @@ async def users_count(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
     register_user(user_id)
 
-    users = load_users()
+    users = load_json(USERS_FILE, [])
 
-    await update.message.reply_text(
-        f"👥 Bot users: {len(users)}"
-    )
+    await update.message.reply_text(f"👥 Bot users: {len(users)}")
 
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
