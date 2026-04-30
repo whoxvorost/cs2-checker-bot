@@ -15,9 +15,7 @@ from telegram.ext import (
 )
 
 
-# =========================
-# НАЛАШТУВАННЯ
-# =========================
+# ========================= НАЛАШТУВАННЯ
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -30,9 +28,7 @@ CACHE_FILE = BASE_DIR / "steam_cache.json"
 USERS_FILE = BASE_DIR / "users.json"
 
 
-# =========================
-# JSON HELPERS
-# =========================
+# ========================= JSON HELPERS
 
 
 def load_json(file_path, default):
@@ -50,9 +46,7 @@ def save_json(file_path, data):
 steam_cache = load_json(CACHE_FILE, {})
 
 
-# =========================
-# USERS
-# =========================
+# ========================= USERS
 
 
 def register_user(user_id: int):
@@ -65,9 +59,7 @@ def register_user(user_id: int):
     return len(users)
 
 
-# =========================
-# STEAM
-# =========================
+# ========================= STEAM
 
 
 def resolve_vanity(vanity: str):
@@ -114,9 +106,7 @@ def extract_steamid(text: str):
     return None
 
 
-# =========================
-# КАРТОЧКА
-# =========================
+# =========================  КАРТОЧКА
 
 
 def build_card(steamid: str):
@@ -138,9 +128,7 @@ def build_card(steamid: str):
     )
 
 
-# =========================
-# TELEGRAM BOT
-# =========================
+# ========================= TELEGRAM BOT
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
